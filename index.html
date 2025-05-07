@@ -5,40 +5,56 @@
     <meta charset="UTF-8">
     <title>513500 涨跌幅估算器</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        input, button { padding: 10px; font-size: 16px; }
-        .data-box { margin: 20px 0; font-size: 18px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        .container {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            margin: 100px auto;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            width: 80%;
+        }
+        .data-box {
+            margin: 20px 0;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
-    <h1>513500 涨跌幅估算器</h1>
-    <div class="data-box">
-        <strong>标普500当前点数：</strong><span id="spx">加载中...</span>
-    </div>
-    <div class="data-box">
-        <strong>美元兑人民币汇率：</strong><span id="usd_cny">加载中...</span>
-    </div>
-    <div class="data-box">
-        <label for="spxChange">标普500 今日涨跌幅（%）：</label>
-        <input type="number" id="spxChange" placeholder="例如：1.23">
-        <button onclick="estimate()">估算 513500 涨跌幅</button>
-    </div>
-    <div class="data-box">
-        <strong>513500 估算涨跌幅：</strong><span id="estimation">--%</span>
+    <div class="container">
+        <h1>513500 涨跌幅估算器</h1>
+        <div class="data-box">
+            <strong>标普500当前点数：</strong><span id="spx">（请手动输入，或因国内网络无法自动抓取）</span>
+        </div>
+        <div class="data-box">
+            <strong>美元兑人民币汇率：</strong><span id="usd_cny">加载中...</span>
+        </div>
+        <div class="data-box">
+            <label for="spxChange">标普500 今日涨跌幅（%）：</label><br/>
+            <input type="number" id="spxChange" placeholder="例如：1.23">
+            <button onclick="estimate()">估算 513500 涨跌幅</button>
+        </div>
+        <div class="data-box">
+            <strong>513500 估算涨跌幅：</strong><span id="estimation">--%</span>
+        </div>
     </div>
 
     <script>
-        async function fetchSPX() {
-            try {
-                const res = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC");
-                const data = await res.json();
-                const spx = data.chart.result[0].meta.regularMarketPrice;
-                document.getElementById("spx").innerText = spx.toFixed(2);
-            } catch (error) {
-                document.getElementById("spx").innerText = "获取失败";
-            }
-        }
-
         async function fetchUSDCNY() {
             try {
                 const res = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=CNY");
@@ -56,12 +72,10 @@
                 alert("请输入有效的标普500涨跌幅");
                 return;
             }
-            // 假设汇率变动对513500影响大约为30%，标普指数为70%
             const estimated = spxChange * 0.7;
             document.getElementById("estimation").innerText = estimated.toFixed(2) + "%";
         }
 
-        fetchSPX();
         fetchUSDCNY();
     </script>
 </body>
