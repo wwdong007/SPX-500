@@ -10,15 +10,16 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: #eef1f5;
         }
         .container {
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 30px;
             margin: 100px auto;
             width: 90%;
             max-width: 500px;
             border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
         input, button {
             padding: 10px;
@@ -65,10 +66,10 @@
 
         async function fetchSPX() {
             try {
-                const res = await fetch("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=SPY&apikey=YOUR_API_KEY");
+                const res = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1d&interval=1d");
                 const data = await res.json();
-                const lastClose = data["Time Series (Daily)"][Object.keys(data["Time Series (Daily)"])[0]]["4. close"];
-                document.getElementById("spx").innerText = lastClose;
+                const spx = data.chart.result[0].meta.regularMarketPrice;
+                document.getElementById("spx").innerText = spx.toFixed(2);
             } catch (error) {
                 document.getElementById("spx").innerText = "获取失败";
             }
