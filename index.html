@@ -5,30 +5,56 @@
     <meta charset="UTF-8">
     <title>513500 涨跌幅估算器</title>
     <style>
+        :root {
+            --primary-color: #ffffff;
+            --accent-color: #007bff;
+            --text-color: #222;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #eef1f5;
+            font-family: Arial, sans-serif;
+            background: url('background.png') no-repeat center center fixed;
+            background-size: cover;
         }
         .container {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: var(--glass-bg);
+            color: var(--text-color);
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.85);
             padding: 30px;
             margin: 100px auto;
             width: 90%;
             max-width: 500px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            backdrop-filter: blur(6px);
         }
         input, button {
-            padding: 10px;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+            background: linear-gradient(to right, #007bff, #3399ff);
+            padding: 12px;
             font-size: 16px;
-            margin: 5px;
-            width: 80%;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: linear-gradient(to right, #007bff, #3399ff);
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
         .data-box {
-            margin: 20px 0;
+            margin: 15px 0;
             font-size: 18px;
         }
     </style>
@@ -37,7 +63,8 @@
     <div class="container">
         <h1>513500 涨跌幅估算器</h1>
         <div class="data-box">
-            <strong>标普500当前点数：</strong><span id="spx">加载中...</span>
+            <strong>标普500当前点数：</strong><span id="spx">加载中...</span><br/>
+    <strong>标普500 涨跌幅：</strong><span id="spx_change">加载中...</span>
         </div>
         <div class="data-box">
             <strong>美元兑人民币汇率：</strong><span id="usd_cny">加载中...</span>
@@ -55,9 +82,9 @@
     <script>
         async function fetchUSDCNY() {
             try {
-                const res = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=CNY");
+                const res = await fetch("https://v6.exchangerate-api.com/v6/562d0cb5aaf9eb90a6ae3f2b/latest/USD");
                 const data = await res.json();
-                const rate = data.rates.CNY;
+                const rate = data.conversion_rates.CNY;
                 document.getElementById("usd_cny").innerText = rate.toFixed(4);
             } catch (error) {
                 document.getElementById("usd_cny").innerText = "获取失败";
@@ -66,12 +93,18 @@
 
         async function fetchSPX() {
             try {
-                const res = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1d&interval=1d");
+                const res = await fetch("https://financialmodelingprep.com/api/v3/quote/%5EGSPC?apikey=T9nZyNVed3pVtq7OLy6H9KrkTprkL9k4");
                 const data = await res.json();
-                const spx = data.chart.result[0].meta.regularMarketPrice;
+                const spx = data[0].price;
+        const prevClose = data[0].previousClose;
+        const change = ((spx - prevClose) / prevClose) * 100;
+        document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
+        document.getElementById("spxChange").value = change.toFixed(2);
+        estimate();
                 document.getElementById("spx").innerText = spx.toFixed(2);
             } catch (error) {
                 document.getElementById("spx").innerText = "获取失败";
+        document.getElementById("spx_change").innerText = "获取失败";
             }
         }
 
