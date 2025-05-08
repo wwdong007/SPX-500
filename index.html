@@ -5,37 +5,22 @@
     <meta charset="UTF-8">
     <title>513500 涨跌幅估算器</title>
     <style>
-        :root {
-            --primary-color: #ffffff;
-            --accent-color: #007bff;
-            --text-color: #222;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --shadow: 0 8px 24px rgba(0,0,0,0.3);
-        }
         body {
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background: url('background.png') no-repeat center center fixed;
-            background-size: cover;
+            background: linear-gradient(to right, #f0f2f5, #d9e2ec);
         }
         .container {
-            background-color: var(--glass-bg);
-            color: var(--text-color);
-            backdrop-filter: blur(8px);
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 30px;
             margin: 100px auto;
             width: 90%;
             max-width: 500px;
             border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            backdrop-filter: blur(6px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
         input, button {
-            color: var(--text-color);
-            background-color: #f9f9f9;
-            background: linear-gradient(to right, #007bff, #3399ff);
             padding: 12px;
             font-size: 16px;
             margin: 10px 0;
@@ -45,13 +30,12 @@
         }
         button {
             background: linear-gradient(to right, #007bff, #3399ff);
-            background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0056b3;
+            background: #0056b3;
         }
         .data-box {
             margin: 15px 0;
@@ -64,7 +48,7 @@
         <h1>513500 涨跌幅估算器</h1>
         <div class="data-box">
             <strong>标普500当前点数：</strong><span id="spx">加载中...</span><br/>
-    <strong>标普500 涨跌幅：</strong><span id="spx_change">加载中...</span>
+            <strong>标普500 涨跌幅：</strong><span id="spx_change">加载中...</span>
         </div>
         <div class="data-box">
             <strong>美元兑人民币汇率：</strong><span id="usd_cny">加载中...</span>
@@ -79,55 +63,54 @@
         </div>
     </div>
 
-    
-<script>
-    async function fetchUSDCNY() {
-        try {
-            const res = await fetch("https://v6.exchangerate-api.com/v6/562d0cb5aaf9eb90a6ae3f2b/latest/USD");
-            const data = await res.json();
-            const rate = data.conversion_rates.CNY;
-            document.getElementById("usd_cny").innerText = rate.toFixed(4);
-        } catch (error) {
-            console.error("汇率获取失败：", error);
-            document.getElementById("usd_cny").innerText = "获取失败";
+    <script>
+        async function fetchUSDCNY() {
+            try {
+                const res = await fetch("https://v6.exchangerate-api.com/v6/562d0cb5aaf9eb90a6ae3f2b/latest/USD");
+                const data = await res.json();
+                const rate = data.conversion_rates.CNY;
+                document.getElementById("usd_cny").innerText = rate.toFixed(4);
+            } catch (error) {
+                console.error("汇率获取失败：", error);
+                document.getElementById("usd_cny").innerText = "获取失败";
+            }
         }
-    }
 
-    async function fetchSPX() {
-        try {
-            const res = await fetch("https://spx-proxy.example.workers.dev"); // 用户需替换为实际的 Worker 地址
-            const data = await res.json();
-            const meta = data.chart.result[0].meta;
-            const spx = meta.regularMarketPrice;
-            const prevClose = meta.previousClose;
-            const change = ((spx - prevClose) / prevClose) * 100;
+        async function fetchSPX() {
+            try {
+                const res = await fetch("https://open-proxy.gptapi.workers.dev/spx");
+                const data = await res.json();
 
-            document.getElementById("spx").innerText = spx.toFixed(2);
-            document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
-            document.getElementById("spxChange").value = change.toFixed(2);
-            estimate();
-        } catch (error) {
-            console.error("标普指数获取失败：", error);
-            document.getElementById("spx").innerText = "获取失败";
-            document.getElementById("spx_change").innerText = "获取失败";
+                const meta = data.chart.result[0].meta;
+                const spx = meta.regularMarketPrice;
+                const prevClose = meta.previousClose;
+                const change = ((spx - prevClose) / prevClose) * 100;
+
+                document.getElementById("spx").innerText = spx.toFixed(2);
+                document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
+                document.getElementById("spxChange").value = change.toFixed(2);
+                estimate();
+            } catch (error) {
+                console.error("SPX 数据获取失败：", error);
+                document.getElementById("spx").innerText = "获取失败";
+                document.getElementById("spx_change").innerText = "获取失败";
+            }
         }
-    }
 
-    function estimate() {
-        const spxChange = parseFloat(document.getElementById("spxChange").value);
-        if (isNaN(spxChange)) {
-            document.getElementById("estimation").innerText = "--%";
-            return;
+        function estimate() {
+            const spxChange = parseFloat(document.getElementById("spxChange").value);
+            if (isNaN(spxChange)) {
+                document.getElementById("estimation").innerText = "--%";
+                return;
+            }
+            const estimated = spxChange * 0.7;
+            document.getElementById("estimation").innerText = estimated.toFixed(2) + "%";
         }
-        const estimated = spxChange * 0.7;
-        document.getElementById("estimation").innerText = estimated.toFixed(2) + "%";
-    }
 
-    window.onload = () => {
-        fetchUSDCNY();
-        fetchSPX();
-    };
-</script>
-
+        window.onload = () => {
+            fetchUSDCNY();
+            fetchSPX();
+        };
+    </script>
 </body>
 </html>
