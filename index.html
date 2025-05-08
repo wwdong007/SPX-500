@@ -79,71 +79,55 @@
         </div>
     </div>
 
-    <script>
-        async function fetchUSDCNY() {
-            try {
-                const res = await fetch("https://v6.exchangerate-api.com/v6/562d0cb5aaf9eb90a6ae3f2b/latest/USD");
-                const data = await res.json();
-                const rate = data.conversion_rates.CNY;
-                document.getElementById("usd_cny").innerText = rate.toFixed(4);
-            } catch (error) {
-                document.getElementById("usd_cny").innerText = "获取失败";
-            }
+    
+<script>
+    async function fetchUSDCNY() {
+        try {
+            const res = await fetch("https://v6.exchangerate-api.com/v6/562d0cb5aaf9eb90a6ae3f2b/latest/USD");
+            const data = await res.json();
+            const rate = data.conversion_rates.CNY;
+            document.getElementById("usd_cny").innerText = rate.toFixed(4);
+        } catch (error) {
+            console.error("汇率获取失败：", error);
+            document.getElementById("usd_cny").innerText = "获取失败";
         }
-
-        
-
-async function fetchSPX() {
-    try {
-        const res = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=1d&interval=1d");
-        const data = await res.json();
-
-        const meta = data.chart.result[0].meta;
-        const spx = meta.regularMarketPrice;
-        const prevClose = meta.previousClose;
-        const change = ((spx - prevClose) / prevClose) * 100;
-
-        document.getElementById("spx").innerText = spx.toFixed(2);
-        document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
-        document.getElementById("spxChange").value = change.toFixed(2);
-        estimate();
-    } catch (error) {
-        console.error("SPX 数据获取失败：", error);
-        document.getElementById("spx").innerText = "获取失败";
-        document.getElementById("spx_change").innerText = "获取失败";
     }
-}
 
+    async function fetchSPX() {
+        try {
+            const res = await fetch("https://spx-proxy.example.workers.dev"); // 用户需替换为实际的 Worker 地址
+            const data = await res.json();
+            const meta = data.chart.result[0].meta;
+            const spx = meta.regularMarketPrice;
+            const prevClose = meta.previousClose;
+            const change = ((spx - prevClose) / prevClose) * 100;
 
-        const spx = parseFloat(data.price);
-        const prevClose = parseFloat(data.previous_close);
-        const change = ((spx - prevClose) / prevClose) * 100;
-
-        document.getElementById("spx").innerText = spx.toFixed(2);
-        document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
-        document.getElementById("spxChange").value = change.toFixed(2);
-        estimate();
-    } catch (error) {
-        console.error("SPX 数据获取失败：", error);
-        document.getElementById("spx").innerText = "获取失败";
-        document.getElementById("spx_change").innerText = "获取失败";
+            document.getElementById("spx").innerText = spx.toFixed(2);
+            document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
+            document.getElementById("spxChange").value = change.toFixed(2);
+            estimate();
+        } catch (error) {
+            console.error("标普指数获取失败：", error);
+            document.getElementById("spx").innerText = "获取失败";
+            document.getElementById("spx_change").innerText = "获取失败";
+        }
     }
-}
 
+    function estimate() {
+        const spxChange = parseFloat(document.getElementById("spxChange").value);
+        if (isNaN(spxChange)) {
+            document.getElementById("estimation").innerText = "--%";
+            return;
         }
+        const estimated = spxChange * 0.7;
+        document.getElementById("estimation").innerText = estimated.toFixed(2) + "%";
+    }
 
-        function estimate() {
-            const spxChange = parseFloat(document.getElementById("spxChange").value);
-            if (isNaN(spxChange)) {
-                alert("请输入有效的标普500涨跌幅");
-                return;
-            }
-            const estimated = spxChange * 0.7;
-            document.getElementById("estimation").innerText = estimated.toFixed(2) + "%";
-        }
-
+    window.onload = () => {
         fetchUSDCNY();
         fetchSPX();
-    </script>
+    };
+</script>
+
 </body>
 </html>
