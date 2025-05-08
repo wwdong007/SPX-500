@@ -91,21 +91,33 @@
             }
         }
 
-        async function fetchSPX() {
-            try {
-                const res = await fetch("https://financialmodelingprep.com/api/v3/quote/%5EGSPC?apikey=T9nZyNVed3pVtq7OLy6H9KrkTprkL9k4");
-                const data = await res.json();
-                const spx = data[0].price;
-        const prevClose = data[0].previousClose;
+        
+async function fetchSPX() {
+    try {
+        const res = await fetch("https://api.twelvedata.com/quote?symbol=SPX&apikey=de468c7ecc5342f3bdaa624704a97f2a");
+        const data = await res.json();
+
+        console.log("SPX API 返回数据：", data);
+
+        if (!data.price || !data.previous_close) {
+            throw new Error("数据字段缺失");
+        }
+
+        const spx = parseFloat(data.price);
+        const prevClose = parseFloat(data.previous_close);
         const change = ((spx - prevClose) / prevClose) * 100;
+
+        document.getElementById("spx").innerText = spx.toFixed(2);
         document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
         document.getElementById("spxChange").value = change.toFixed(2);
         estimate();
-                document.getElementById("spx").innerText = spx.toFixed(2);
-            } catch (error) {
-                document.getElementById("spx").innerText = "获取失败";
+    } catch (error) {
+        console.error("SPX 数据获取失败：", error);
+        document.getElementById("spx").innerText = "获取失败";
         document.getElementById("spx_change").innerText = "获取失败";
-            }
+    }
+}
+
         }
 
         function estimate() {
