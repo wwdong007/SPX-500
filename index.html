@@ -3,114 +3,116 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>513500 涨跌幅估算器</title>
+    <title>513500 涨跌幅估算器（双模式）</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #f0f2f5, #d9e2ec);
+            background-color: #f1f5f8;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
         }
-        .container {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            margin: 100px auto;
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
             width: 90%;
-            max-width: 500px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            max-width: 700px;
+            background: #fff;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
         }
-        input, button {
-            padding: 12px;
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
             font-size: 16px;
-            margin: 10px 0;
-            width: 100%;
-            border-radius: 6px;
-            border: 1px solid #ccc;
         }
-        button {
-            background: linear-gradient(to right, #007bff, #3399ff);
-            color: white;
-            border: none;
-            cursor: pointer;
+        th {
+            background-color: #dae4ee;
         }
-        button:hover {
-            background: #0056b3;
+        input {
+            width: 100px;
+            padding: 6px;
+            font-size: 16px;
         }
-        .data-box {
-            margin: 15px 0;
-            font-size: 18px;
+        .result {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>513500 涨跌幅估算器</h1>
-        <div class="data-box">
-            <strong>标普500当前点数：</strong><span id="spx">加载中...</span><br/>
-            <strong>标普500 涨跌幅：</strong><span id="spx_change">加载中...</span>
-        </div>
-        <div class="data-box">
-            <strong>美元兑人民币汇率：</strong><span id="usd_cny">加载中...</span>
-        </div>
-        <div class="data-box">
-            <label for="spxChange">标普500 今日涨跌幅（%）：</label><br/>
-            <input type="number" id="spxChange" placeholder="例如：1.23">
-            <button onclick="estimate()">估算 513500 涨跌幅</button>
-        </div>
-        <div class="data-box">
-            <strong>513500 估算涨跌幅：</strong><span id="estimation">--%</span>
-        </div>
-    </div>
 
-    <script>
-        async function fetchUSDCNY() {
-            try {
-                const res = await fetch("https://v6.exchangerate-api.com/v6/562d0cb5aaf9eb90a6ae3f2b/latest/USD");
-                const data = await res.json();
-                const rate = data.conversion_rates.CNY;
-                document.getElementById("usd_cny").innerText = rate.toFixed(4);
-            } catch (error) {
-                console.error("汇率获取失败：", error);
-                document.getElementById("usd_cny").innerText = "获取失败";
-            }
-        }
+<h2>完整计算模式（输入昨日+今日数值）</h2>
+<table>
+    <thead>
+        <tr><th>项目</th><th>昨日数值</th><th>今日数值</th><th>涨跌幅（%）</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>标普500指数</td>
+            <td><input id="full_spx_y"></td>
+            <td><input id="full_spx_t"></td>
+            <td id="full_spx_change">--</td>
+        </tr>
+        <tr>
+            <td>美元兑人民币汇率</td>
+            <td><input id="full_usd_y"></td>
+            <td><input id="full_usd_t"></td>
+            <td id="full_usd_change">--</td>
+        </tr>
+    </tbody>
+</table>
+<div class="result">513500估算涨跌幅：<span id="full_estimation">--%</span></div>
 
-        async function fetchSPX() {
-            try {
-                const res = await fetch("https://open-proxy.gptapi.workers.dev/spx");
-                const data = await res.json();
+<h2>快速计算模式（直接输入涨跌幅）</h2>
+<table>
+    <thead>
+        <tr><th>项目</th><th>涨跌幅（%）</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>标普500指数</td>
+            <td><input id="quick_spx_change"></td>
+        </tr>
+        <tr>
+            <td>美元兑人民币汇率</td>
+            <td><input id="quick_usd_change"></td>
+        </tr>
+    </tbody>
+</table>
+<div class="result">513500估算涨跌幅：<span id="quick_estimation">--%</span></div>
 
-                const meta = data.chart.result[0].meta;
-                const spx = meta.regularMarketPrice;
-                const prevClose = meta.previousClose;
-                const change = ((spx - prevClose) / prevClose) * 100;
+<script>
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calculateAll));
 
-                document.getElementById("spx").innerText = spx.toFixed(2);
-                document.getElementById("spx_change").innerText = change.toFixed(2) + "%";
-                document.getElementById("spxChange").value = change.toFixed(2);
-                estimate();
-            } catch (error) {
-                console.error("SPX 数据获取失败：", error);
-                document.getElementById("spx").innerText = "获取失败";
-                document.getElementById("spx_change").innerText = "获取失败";
-            }
-        }
+function calculateAll(){
+    // 完整模式计算
+    const fsy=parseFloat(full_spx_y.value), fst=parseFloat(full_spx_t.value);
+    const fuy=parseFloat(full_usd_y.value), fut=parseFloat(full_usd_t.value);
+    let fsc=NaN, fuc=NaN, fe=NaN;
+    if(fsy&&fst) {
+        fsc=(fst-fsy)/fsy*100;
+        full_spx_change.innerText=fsc.toFixed(2)+"%";
+    } else full_spx_change.innerText="--";
+    if(fuy&&fut) {
+        fuc=(fut-fuy)/fuy*100;
+        full_usd_change.innerText=fuc.toFixed(2)+"%";
+    } else full_usd_change.innerText="--";
+    if(!isNaN(fsc)&&!isNaN(fuc)) {
+        fe=fsc*0.7 + fuc*(-0.5) + 0.1;
+        full_estimation.innerText=fe.toFixed(2)+"%";
+    } else full_estimation.innerText="--%";
 
-        function estimate() {
-            const spxChange = parseFloat(document.getElementById("spxChange").value);
-            if (isNaN(spxChange)) {
-                document.getElementById("estimation").innerText = "--%";
-                return;
-            }
-            const estimated = spxChange * 0.7;
-            document.getElementById("estimation").innerText = estimated.toFixed(2) + "%";
-        }
+    // 快速模式计算
+    const qsc=parseFloat(quick_spx_change.value);
+    const quc=parseFloat(quick_usd_change.value);
+    let qe=NaN;
+    if(!isNaN(qsc)&&!isNaN(quc)){
+        qe=qsc*0.7 + quc*(-0.5) + 0.1;
+        quick_estimation.innerText=qe.toFixed(2)+"%";
+    }else quick_estimation.innerText="--%";
+}
+</script>
 
-        window.onload = () => {
-            fetchUSDCNY();
-            fetchSPX();
-        };
-    </script>
 </body>
 </html>
